@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - Farmer AI{% endblock %}
+
+{% block content %}
+<div class="row h-100">
+    <div class="col-12">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-robot"></i> AI Agricultural Assistant
+                    <small class="float-end">Ask anything about your agricultural data</small>
+                </h5>
+            </div>
+            
+            <div class="card-body d-flex flex-column" style="height: 70vh;">
+                <!-- Chat Messages -->
+                <div id="chatMessages" class="flex-grow-1 overflow-auto mb-3" style="max-height: calc(100% - 80px);">
+                    {% for chat in chat_history %}
+                    <div class="mb-3">
+                        <div class="d-flex">
+                            <div class="message-bubble user-message ms-auto">
+                                <strong>You:</strong> {{ chat.message }}
+                                <small class="d-block text-muted">{{ chat.timestamp.strftime('%H:%M:%S') }}</small>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div class="message-bubble ai-message me-auto">
+                                <strong>AI Assistant:</strong> {{ chat.response }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Chat Input -->
+                <div class="mt-auto">
+                    <form id="chatForm" class="d-flex">
+                        <input type="text" id="messageInput" class="form-control" 
+                               placeholder="Ask about your soil moisture, weather, vegetation, or any agricultural data..." required>
+                        <button type="submit" class="btn btn-success ms-2" id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Questions -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Quick Questions</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-outline-primary btn-sm w-100" onclick="sendQuickMessage('What is my latest soil moisture status?')">
+                            Soil Moisture Status
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-outline-info btn-sm w-100" onclick="sendQuickMessage('Show me the weather forecast')">
+                            Weather Forecast
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-outline-success btn-sm w-100" onclick="sendQuickMessage('How is my vegetation health?')">
+                            Vegetation Health
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-outline-warning btn-sm w-100" onclick="sendQuickMessage('Give me irrigation recommendations')">
+                            Irrigation Advice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.message-bubble {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+}
+
+.user-message {
+    background-color: #007bff;
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.ai-message {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-bottom-left-radius: 5px;
+}
+
+#chatMessages {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 15px;
+}
+</style>
+
+<script>
+document.getElementById('chatForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    sendMessage();
+});
+
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (!message) return;
+    
+    // Disable input and button
+    const sendButton = document.getElementById('sendButton');
+    messageInput.disabled = true;
+    sendButton.disabled = true;
+    sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    // Add user message to chat
+    addMessageToChat('You', message, true);
+    
+    // Clear input
+    messageInput.value = '';
+    
+    // Send to API
+    fetch('{{ url_for("rag.api_chat") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            addMessageToChat('AI Assistant', data.response, false);
+        } else {
+            addMessageToChat('AI Assistant', 'Sorry, I encountered an error processing your request.', false);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        addMessageToChat('AI Assistant', 'Sorry, I encountered an error processing your request.', false);
+    })
+    .finally(() => {
+        // Re-enable input and button
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        messageInput.focus();
+    });
+}
+
+function addMessageToChat(sender, message, isUser) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'mb-3';
+    
+    const now = new Date();
+    const timeString = now.toLocaleTimeString();
+    
+    if (isUser) {
+        messageDiv.innerHTML = `
+            <div class="d-flex">
+                <div class="message-bubble user-message ms-auto">
+                    <strong>${sender}:</strong> ${message}
+                    <small class="d-block text-muted">${timeString}</small>
+                </div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="d-flex">
+                <div class="message-bubble ai-message me-auto">
+                    <strong>${sender}:</strong> ${message.replace(/\n/g, '<br>')}
+                </div>
+            </div>
+        `;
+    }
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function sendQuickMessage(message) {
+    document.getElementById('messageInput').value = message;
+    sendMessage();
+}
+
+// Auto-focus on message input
+document.getElementById('messageInput').focus();
+</script>
+{% endblock %}

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Farmer AI{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+            <small class="text-muted">Welcome, {{ session.user_name }}!</small>
+        </h2>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ stats.locations_count }}</h4>
+                        <p class="mb-0">Locations</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-map-marker-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ stats.soil_data_count }}</h4>
+                        <p class="mb-0">Soil Reports</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-seedling fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ stats.weather_data_count }}</h4>
+                        <p class="mb-0">Weather Data</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-cloud-sun fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ stats.vegetation_data_count }}</h4>
+                        <p class="mb-0">Vegetation Reports</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-leaf fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Latest Data Cards -->
+<div class="row">
+    {% if latest_location %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-map-marker-alt text-primary"></i> Latest Location</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Latitude:</strong> {{ latest_location.lat }}</p>
+                <p><strong>Longitude:</strong> {{ latest_location.long }}</p>
+                <p><strong>Updated:</strong> {{ latest_location.updatedAt.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if latest_soil %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-seedling text-success"></i> Latest Soil Analysis</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Assessment:</strong> 
+                    <span class="badge bg-{{ 'warning' if latest_soil.summary.latest_assessment == 'critical_dry' else 'success' }}">
+                        {{ latest_soil.summary.latest_assessment|title }}
+                    </span>
+                </p>
+                <p><strong>Surface Moisture:</strong> {{ "%.2f"|format(latest_soil.summary.average_surface_moisture) }}%</p>
+                <p><strong>Root Zone Moisture:</strong> {{ "%.2f"|format(latest_soil.summary.average_root_zone_moisture) }}%</p>
+                <p><strong>Recommendation:</strong> {{ latest_soil.summary.primary_recommendation }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if latest_weather %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-cloud-sun text-warning"></i> Current Weather</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Location:</strong> {{ latest_weather.city.name }}</p>
+                <p><strong>Temperature:</strong> {{ latest_weather.current.main.temp }}°C</p>
+                <p><strong>Feels Like:</strong> {{ latest_weather.current.main.feels_like }}°C</p>
+                <p><strong>Humidity:</strong> {{ latest_weather.current.main.humidity }}%</p>
+                <p><strong>Condition:</strong> {{ latest_weather.current.weather[0].description|title }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if latest_vegetation %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-leaf text-success"></i> Latest Vegetation Analysis</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Overall Health:</strong> 
+                    <span class="badge bg-{{ 'warning' if latest_vegetation.summary.latest_assessment == 'moderate' else 'success' }}">
+                        {{ latest_vegetation.summary.latest_assessment|title }}
+                    </span>
+                </p>
+                <p><strong>Observations:</strong> {{ latest_vegetation.summary.total_observations }}</p>
+                <p><strong>Cloud Cover:</strong> {{ latest_vegetation.summary.average_cloud_cover }}%</p>
+                <p><strong>Recommendation:</strong> {{ latest_vegetation.summary.recommendation }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('rag.chat') }}" class="btn btn-primary w-100">
+                            <i class="fas fa-comments"></i><br>
+                            <small>Ask AI Assistant</small>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-info w-100" onclick="viewRawData()">
+                            <i class="fas fa-database"></i><br>
+                            <small>View Raw Data</small>
+                        </button>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-success w-100" onclick="generateReport()">
+                            <i class="fas fa-file-alt"></i><br>
+                            <small>Generate Report</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Raw Data Modal -->
+<div class="modal fade" id="rawDataModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Raw Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="rawDataContent" style="max-height: 400px; overflow-y: auto;"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewRawData() {
+    fetch('{{ url_for("rag.api_user_data") }}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('rawDataContent').textContent = JSON.stringify(data, null, 2);
+            new bootstrap.Modal(document.getElementById('rawDataModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error fetching data');
+        });
+}
+
+function generateReport() {
+    // This could be expanded to generate PDF reports
+    window.open('{{ url_for("rag.chat") }}?message=Generate a comprehensive agricultural report based on my data', '_blank');
+}
+</script>
+{% endblock %}
