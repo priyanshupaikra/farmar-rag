@@ -9,6 +9,7 @@ We build embeddings with Gemini, store chunked JSON in `rag_chunks`, retrieve to
 - Ingest data from collections tied to `userId`
 - RAG retrieval over JSON chunks (cosine similarity in Python)
 - Simple endpoints you can call from any frontend
+- External API endpoints for integration with other applications (e.g., Next.js)
 
 ## Collections used
 - `users` (password hashed with bcrypt)
@@ -71,6 +72,31 @@ python app.py
 ```json
 { "lat": 28.59, "lon": 77.01 }
 ```
+
+## External API (for Next.js and other integrations)
+
+### Chat with RAG system
+`POST /api/external/chat` with headers `X-API-Key` and `X-User-ID`
+```json
+{ "message": "What was my latest vegetation assessment?", "session_id": "<optional>" }
+```
+
+### Get user data
+`GET /api/external/user-data` with headers `X-API-Key` and `X-User-ID`
+
+### Get chat history
+`GET /api/external/chat/history?session_id=<optional>` with headers `X-API-Key` and `X-User-ID`
+
+### Get chat sessions
+`GET /api/external/chat/sessions` with headers `X-API-Key` and `X-User-ID`
+
+### Create new chat session
+`POST /api/external/chat/session/new` with headers `X-API-Key` and `X-User-ID`
+
+### Delete chat history
+`POST /api/external/chat/delete` with headers `X-API-Key` and `X-User-ID`
+
+See `NEXTJS_INTEGRATION.md` for detailed usage instructions.
 
 ## Notes
 - For **scale**, switch to **MongoDB Atlas Vector Search** and create a vector index on `rag_chunks.embedding` to avoid loading all chunks into memory.
