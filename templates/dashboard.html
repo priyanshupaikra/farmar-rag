@@ -6,8 +6,8 @@
 <div class="row">
     <div class="col-12">
         <h2 class="mb-4">
-            <i class="fas fa-tachometer-alt"></i> Dashboard
-            <small class="text-muted">Welcome, {{ session.user_name }}!</small>
+            <i class="fas fa-tachometer-alt"></i> Farm Dashboard
+            <small class="text-muted">Welcome back, {{ session.user_name }}!</small>
         </h2>
     </div>
 </div>
@@ -20,7 +20,7 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <h4>{{ stats.locations_count }}</h4>
-                        <p class="mb-0">Locations</p>
+                        <p class="mb-0">Farm Locations</p>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-map-marker-alt fa-2x"></i>
@@ -52,7 +52,7 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <h4>{{ stats.weather_data_count }}</h4>
-                        <p class="mb-0">Weather Data</p>
+                        <p class="mb-0">Weather Records</p>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-cloud-sun fa-2x"></i>
@@ -68,7 +68,7 @@
                 <div class="d-flex justify-content-between">
                     <div>
                         <h4>{{ stats.vegetation_data_count }}</h4>
-                        <p class="mb-0">Vegetation Reports</p>
+                        <p class="mb-0">Crop Reports</p>
                     </div>
                     <div class="align-self-center">
                         <i class="fas fa-leaf fa-2x"></i>
@@ -85,12 +85,12 @@
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-header">
-                <h5><i class="fas fa-map-marker-alt text-primary"></i> Latest Location</h5>
+                <h5><i class="fas fa-map-marker-alt text-primary"></i> Latest Farm Location</h5>
             </div>
             <div class="card-body">
                 <p><strong>Latitude:</strong> {{ latest_location.lat }}</p>
                 <p><strong>Longitude:</strong> {{ latest_location.long }}</p>
-                <p><strong>Updated:</strong> {{ latest_location.updatedAt.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                <p><strong>Last Updated:</strong> {{ latest_location.updatedAt.strftime('%Y-%m-%d %H:%M:%S') }}</p>
             </div>
         </div>
     </div>
@@ -137,7 +137,7 @@
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-header">
-                <h5><i class="fas fa-leaf text-success"></i> Latest Vegetation Analysis</h5>
+                <h5><i class="fas fa-leaf text-success"></i> Latest Crop Health</h5>
             </div>
             <div class="card-body">
                 <p><strong>Overall Health:</strong> 
@@ -159,13 +159,13 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+                <h5><i class="fas fa-bolt"></i> Farm Management Actions</h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <a href="{{ url_for('rag.chat') }}" class="btn btn-primary w-100">
-                            <i class="fas fa-comments"></i><br>
+                            <i class="fas fa-robot"></i><br>
                             <small>Ask AI Assistant</small>
                         </a>
                     </div>
@@ -177,7 +177,7 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <button class="btn btn-success w-100" onclick="generateReport()">
-                            <i class="fas fa-file-alt"></i><br>
+                            <i class="fas fa-file-contract"></i><br>
                             <small>Generate Report</small>
                         </button>
                     </div>
@@ -192,7 +192,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Raw Data</h5>
+                <h5 class="modal-title">Farm Data Records</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -205,20 +205,26 @@
 <script>
 function viewRawData() {
     fetch('{{ url_for("rag.api_user_data") }}')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             document.getElementById('rawDataContent').textContent = JSON.stringify(data, null, 2);
             new bootstrap.Modal(document.getElementById('rawDataModal')).show();
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error fetching data');
+            document.getElementById('rawDataContent').textContent = 'Error fetching data: ' + error.message;
+            new bootstrap.Modal(document.getElementById('rawDataModal')).show();
         });
 }
 
 function generateReport() {
     // This could be expanded to generate PDF reports
-    window.open('{{ url_for("rag.chat") }}?message=Generate a comprehensive agricultural report based on my data', '_blank');
+    window.open('{{ url_for("rag.chat") }}?message=Generate a comprehensive agricultural report based on my farm data', '_blank');
 }
 </script>
 {% endblock %}

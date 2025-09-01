@@ -1,0 +1,219 @@
+# Next.js Application API Specification
+
+This document describes the API endpoints that a Next.js frontend application can use to interact with the farming AI assistant.
+
+## Base URL
+All endpoints are relative to the base URL of the Flask backend.
+
+## Authentication
+All endpoints require authentication via session cookies. The user must be logged in to access any of these endpoints.
+
+## API Endpoints
+
+### 1. Dashboard Data
+**Endpoint:** `GET /dashboard`
+**Description:** Get dashboard statistics and latest data
+**Response:**
+```json
+{
+  "stats": {
+    "locations_count": 5,
+    "soil_data_count": 12,
+    "weather_data_count": 8,
+    "vegetation_data_count": 7
+  },
+  "latest_location": {
+    "lat": 12.3456,
+    "long": 78.9012,
+    "updatedAt": "2025-08-31T10:43:27"
+  },
+  "latest_soil": {
+    "summary": {
+      "latest_assessment": "optimal",
+      "average_surface_moisture": 45.2,
+      "average_root_zone_moisture": 55.8,
+      "primary_recommendation": "Continue current irrigation schedule"
+    }
+  },
+  "latest_weather": {
+    "city": {
+      "name": "Farmville"
+    },
+    "current": {
+      "main": {
+        "temp": 28.5,
+        "feels_like": 30.2,
+        "humidity": 65
+      },
+      "weather": [
+        {
+          "description": "scattered clouds"
+        }
+      ]
+    }
+  },
+  "latest_vegetation": {
+    "summary": {
+      "latest_assessment": "good",
+      "total_observations": 15,
+      "average_cloud_cover": 25,
+      "recommendation": "Continue monitoring growth patterns"
+    }
+  }
+}
+```
+
+### 2. Chat Interface
+**Endpoint:** `GET /chat`
+**Description:** Get the chat interface with history
+**Response:**
+```html
+<!-- Renders the chat interface with history sidebar -->
+```
+
+### 3. Chat Message
+**Endpoint:** `POST /api/chat`
+**Description:** Send a message to the AI assistant
+**Request Body:**
+```json
+{
+  "message": "What is my latest soil moisture status?"
+}
+```
+**Response:**
+```json
+{
+  "success": true,
+  "response": "Based on your latest soil data:\n\n**Soil Moisture Analysis**\n• Surface moisture: 45.2%\n• Root zone moisture: 55.8%\n• Assessment: Optimal for most crops\n• Recommendation: Continue current irrigation schedule",
+  "timestamp": "2025-08-31T10:45:30"
+}
+```
+
+### 4. Chat History
+**Endpoint:** `GET /api/chat/history`
+**Description:** Get chat history for the current user
+**Response:**
+```json
+{
+  "success": true,
+  "chat_history": [
+    {
+      "userId": "user_id",
+      "message": "What is my latest soil moisture status?",
+      "response": "Based on your latest soil data:\n\n**Soil Moisture Analysis**\n• Surface moisture: 45.2%\n• Root zone moisture: 55.8%\n• Assessment: Optimal for most crops\n• Recommendation: Continue current irrigation schedule",
+      "messageType": "conversation",
+      "timestamp": "2025-08-31T10:45:30"
+    }
+  ]
+}
+```
+
+### 5. Chat Sessions
+**Endpoint:** `GET /api/chat/sessions`
+**Description:** Get chat sessions for the sidebar
+**Response:**
+```json
+{
+  "success": true,
+  "chat_sessions": [
+    {
+      "id": "2025-08-31",
+      "title": "Chat on 2025-08-31",
+      "timestamp": "2025-08-31T10:45:30",
+      "message_count": 5
+    }
+  ]
+}
+```
+
+### 6. New Chat Session
+**Endpoint:** `POST /chat/new`
+**Description:** Start a new chat session (clears history)
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Started a new chat session. Previous history cleared."
+}
+```
+
+### 7. Delete Chat History
+**Endpoint:** `POST /chat/delete`
+**Description:** Delete all chat history for the current user
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Chat history deleted successfully."
+}
+```
+
+### 8. User Data
+**Endpoint:** `GET /api/user-data`
+**Description:** Get raw user data in JSON format
+**Response:**
+```json
+{
+  "user": {
+    "name": "John Farmer",
+    "email": "john@farm.com",
+    "createdAt": "2025-08-30T14:22:10"
+  },
+  "locations": [
+    {
+      "lat": 12.3456,
+      "long": 78.9012,
+      "updatedAt": "2025-08-31T10:43:27"
+    }
+  ],
+  "soil_moisture": [
+    {
+      "surface_moisture": 45.2,
+      "root_zone_moisture": 55.8,
+      "timestamp": "2025-08-31T08:15:00"
+    }
+  ],
+  "weather": [
+    {
+      "city": {
+        "name": "Farmville"
+      },
+      "current": {
+        "main": {
+          "temp": 28.5,
+          "feels_like": 30.2,
+          "humidity": 65
+        },
+        "weather": [
+          {
+            "description": "scattered clouds"
+          }
+        ]
+      },
+      "timestamp": "2025-08-31T10:00:00"
+    }
+  ],
+  "vegetation": [
+    {
+      "health_index": 0.85,
+      "cloud_cover": 25,
+      "timestamp": "2025-08-31T09:30:00"
+    }
+  ]
+}
+```
+
+## Error Responses
+All endpoints may return error responses in the following format:
+```json
+{
+  "error": "Error message describing the issue"
+}
+```
+
+## Implementation Notes
+1. The Next.js app should handle authentication by checking for valid session cookies
+2. All API calls should include proper error handling
+3. The chat interface should update in real-time as new messages are sent
+4. The sidebar should refresh when new chat sessions are created
+5. Structured responses from the AI should be properly formatted for display

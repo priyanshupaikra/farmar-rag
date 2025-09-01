@@ -7,15 +7,16 @@
     <div class="col-md-6 col-lg-4">
         <div class="card shadow">
             <div class="card-header bg-success text-white text-center">
-                <h4><i class="fas fa-leaf"></i> Farmer AI</h4>
+                <h4><i class="fas fa-tractor"></i> Farmer AI</h4>
+                <p class="mb-0">Smart Agriculture Assistant</p>
             </div>
             <div class="card-body">
                 <!-- Login Form -->
                 <div id="loginForm">
-                    <h5 class="card-title text-center mb-4">Sign In</h5>
+                    <h5 class="card-title text-center mb-4">Farm Access Portal</h5>
                     <form method="POST" action="{{ url_for('auth.login') }}">
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         <div class="mb-3">
@@ -23,26 +24,26 @@
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
                         <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-sign-in-alt"></i> Sign In
+                            <i class="fas fa-sign-in-alt"></i> Enter Farm Dashboard
                         </button>
                     </form>
                     <div class="text-center mt-3">
                         <a href="#" onclick="toggleForm()" class="text-decoration-none">
-                            Don't have an account? Sign up
+                            <i class="fas fa-seedling"></i> New to Farmer AI? Create Account
                         </a>
                     </div>
                 </div>
 
                 <!-- Register Form -->
                 <div id="registerForm" style="display: none;">
-                    <h5 class="card-title text-center mb-4">Sign Up</h5>
+                    <h5 class="card-title text-center mb-4">Join Farmer AI</h5>
                     <form method="POST" action="{{ url_for('auth.register') }}">
                         <div class="mb-3">
                             <label for="reg_name" class="form-label">Full Name</label>
                             <input type="text" class="form-control" id="reg_name" name="name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="reg_email" class="form-label">Email</label>
+                            <label for="reg_email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="reg_email" name="email" required>
                         </div>
                         <div class="mb-3">
@@ -50,15 +51,23 @@
                             <input type="password" class="form-control" id="reg_password" name="password" required>
                         </div>
                         <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-user-plus"></i> Sign Up
+                            <i class="fas fa-user-plus"></i> Start Farming with AI
                         </button>
                     </form>
                     <div class="text-center mt-3">
                         <a href="#" onclick="toggleForm()" class="text-decoration-none">
-                            Already have an account? Sign in
+                            <i class="fas fa-sign-in-alt"></i> Already have an account? Sign in
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Farming Info -->
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <h6><i class="fas fa-info-circle"></i> About Farmer AI</h6>
+                <p class="mb-0">Harness the power of AI to optimize your farm operations, monitor crops, and increase yields.</p>
             </div>
         </div>
     </div>

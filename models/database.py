@@ -3,6 +3,8 @@ from bson import ObjectId
 import bcrypt
 from datetime import datetime
 import json
+from collections import defaultdict
+import uuid
 
 class Database:
     def __init__(self, mongodb_uri, database_name):
@@ -24,7 +26,7 @@ class Database:
             "createdAt": datetime.utcnow(),
             "updatedAt": datetime.utcnow()
         }
-        result = self.users.insert_one(user)
+        result = self.db.users.insert_one(user)
         return result.inserted_id
 
     
@@ -67,22 +69,90 @@ class Database:
             "vegetation": vegetation_data
         }
     
-    def save_chat_message(self, user_id, message, response, message_type="user"):
-        """Save chat conversation to database"""
+    def save_chat_message(self, user_id, message, response, message_type="user", session_id=None):
+        """Save chat conversation to database with session tracking"""
         chat_data = {
             "userId": ObjectId(user_id),
+            "sessionId": session_id or str(uuid.uuid4()),
             "message": message,
             "response": response,
             "messageType": message_type,
             "timestamp": datetime.utcnow()
         }
-        return self.db.chat_history.insert_one(chat_data)
+        result = self.db.chat_history.insert_one(chat_data)
+        return result.inserted_id, chat_data['sessionId']
     
-    def get_chat_history(self, user_id, limit=10):
-        """Get recent chat history for a user"""
-        return list(self.db.chat_history.find(
-            {"userId": ObjectId(user_id)}
-        ).sort("timestamp", -1).limit(limit))
+    def get_chat_history(self, user_id, session_id=None, limit=50):
+        """Get chat history for a user, optionally filtered by session"""
+        query = {"userId": ObjectId(user_id)}
+        if session_id:
+            query["sessionId"] = session_id
+            
+        chat_history = list(self.db.chat_history.find(
+            query
+        ).sort("timestamp", 1).limit(limit))
+        
+        # Serialize the data to make it JSON serializable
+        serialized_history = []
+        for chat in chat_history:
+            serialized_chat = chat.copy()
+            # Convert ObjectId to string
+            serialized_chat['_id'] = str(chat['_id'])
+            serialized_chat['userId'] = str(chat['userId'])
+            # Convert datetime to ISO format string
+            serialized_chat['timestamp'] = chat['timestamp'].isoformat()
+            serialized_history.append(serialized_chat)
+            
+        return serialized_history
+    
+    def get_chat_sessions(self, user_id):
+        """Get distinct chat sessions for a user"""
+        pipeline = [
+            {"$match": {"userId": ObjectId(user_id)}},
+            {"$sort": {"timestamp": -1}},
+            {"$group": {
+                "_id": "$sessionId",
+                "title": {"$first": "$message"},
+                "timestamp": {"$first": "$timestamp"},
+                "message_count": {"$sum": 1}
+            }},
+            {"$sort": {"timestamp": -1}},
+            {"$limit": 50}
+        ]
+        
+        sessions = list(self.db.chat_history.aggregate(pipeline))
+        
+        # Format sessions for frontend and serialize data
+        formatted_sessions = []
+        for session in sessions:
+            # Convert ObjectId to string
+            session_id = str(session['_id'])
+            # Convert datetime to ISO format string
+            timestamp = session['timestamp']
+            if hasattr(timestamp, 'isoformat'):
+                timestamp = timestamp.isoformat()
+            # Truncate title to first 30 characters
+            title = session['title'][:30] + "..." if len(session['title']) > 30 else session['title']
+            formatted_sessions.append({
+                'id': session_id,
+                'title': title if title else "New Chat",
+                'timestamp': timestamp,
+                'message_count': session['message_count']
+            })
+        
+        return formatted_sessions
+    
+    def create_new_chat_session(self, user_id):
+        """Create a new chat session"""
+        session_id = str(uuid.uuid4())
+        return session_id
+    
+    def clear_chat_history(self, user_id, session_id=None):
+        """Clear chat history for a user, optionally for a specific session"""
+        query = {"userId": ObjectId(user_id)}
+        if session_id:
+            query["sessionId"] = session_id
+        return self.db.chat_history.delete_many(query)
 
 class MongoJSONEncoder(json.JSONEncoder):
     """Custom JSON encoder for MongoDB objects"""

@@ -4,40 +4,101 @@
 
 {% block content %}
 <div class="row h-100">
-    <div class="col-12">
+    <!-- Chat History Sidebar -->
+    <div class="col-md-3 col-lg-2 d-none d-md-block border-end">
+        <div class="d-flex flex-column h-100">
+            <div class="p-3 border-bottom">
+                <button class="btn btn-success w-100" onclick="createNewChat()">
+                    <i class="fas fa-plus"></i> New Chat
+                </button>
+            </div>
+            
+            <div class="flex-grow-1 overflow-auto">
+                <div class="list-group list-group-flush">
+                    {% for session in chat_sessions %}
+                    <a href="#" 
+                       class="list-group-item list-group-item-action"
+                       onclick="loadChatSession('{{ session.id }}', this); return false;">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ session.title }}</h6>
+                        </div>
+                        <small>
+                            {% if session.timestamp is string %}
+                                {{ session.timestamp[:10] }}
+                            {% else %}
+                                {{ session.timestamp.strftime('%b %d, %Y') }}
+                            {% endif %}
+                        </small>
+                        {% if session.message_count %}
+                        <span class="badge bg-secondary float-end">{{ session.message_count }}</span>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="p-3 border-top">
+                <button class="btn btn-outline-danger w-100" onclick="deleteChatHistory()">
+                    <i class="fas fa-trash"></i> Clear History
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Chat Area -->
+    <div class="col-md-9 col-lg-10">
         <div class="card h-100">
-            <div class="card-header bg-success text-white">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
-                    <i class="fas fa-robot"></i> AI Agricultural Assistant
-                    <small class="float-end">Ask anything about your agricultural data</small>
+                    <i class="fas fa-robot"></i> Farm AI Assistant
                 </h5>
+                <!-- Mobile New Chat Button -->
+                <div class="d-md-none">
+                    <button class="btn btn-light btn-sm me-2" onclick="createNewChat()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="card-body d-flex flex-column" style="height: 70vh;">
                 <!-- Chat Messages -->
                 <div id="chatMessages" class="flex-grow-1 overflow-auto mb-3" style="max-height: calc(100% - 80px);">
-                    {% for chat in chat_history %}
-                    <div class="mb-3">
-                        <div class="d-flex">
-                            <div class="message-bubble user-message ms-auto">
-                                <strong>You:</strong> {{ chat.message }}
-                                <small class="d-block text-muted">{{ chat.timestamp.strftime('%H:%M:%S') }}</small>
+                    {% if chat_history %}
+                        {% for chat in chat_history %}
+                        <div class="mb-3">
+                            <div class="d-flex">
+                                <div class="message-bubble user-message ms-auto">
+                                    <strong>You:</strong> {{ chat.message }}
+                                    <small class="d-block text-muted">
+                                        {% if chat.timestamp is string %}
+                                            {{ chat.timestamp[11:19] }}
+                                        {% else %}
+                                            {{ chat.timestamp.strftime('%H:%M:%S') }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="d-flex">
+                                <div class="message-bubble ai-message me-auto">
+                                    <strong>Farm AI:</strong> {{ chat.response|safe }}
+                                </div>
                             </div>
                         </div>
-                        <div class="d-flex">
-                            <div class="message-bubble ai-message me-auto">
-                                <strong>AI Assistant:</strong> {{ chat.response }}
-                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted mt-5">
+                            <i class="fas fa-robot fa-3x mb-3"></i>
+                            <p>Start a conversation with your AI farming assistant<br>
+                            <small>Ask about your soil, weather, crops, or farm management</small></p>
                         </div>
-                    </div>
-                    {% endfor %}
+                    {% endif %}
                 </div>
                 
                 <!-- Chat Input -->
                 <div class="mt-auto">
                     <form id="chatForm" class="d-flex">
                         <input type="text" id="messageInput" class="form-control" 
-                               placeholder="Ask about your soil moisture, weather, vegetation, or any agricultural data..." required>
+                               placeholder="Ask about your soil, weather, crops, or farm management..." required>
                         <button type="submit" class="btn btn-success ms-2" id="sendButton">
                             <i class="fas fa-paper-plane"></i>
                         </button>
@@ -53,28 +114,28 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h6 class="mb-0">Quick Questions</h6>
+                <h6 class="mb-0"><i class="fas fa-bolt"></i> Quick Farm Queries</h6>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3 mb-2">
                         <button class="btn btn-outline-primary btn-sm w-100" onclick="sendQuickMessage('What is my latest soil moisture status?')">
-                            Soil Moisture Status
+                            <i class="fas fa-tint"></i> Soil Moisture
                         </button>
                     </div>
                     <div class="col-md-3 mb-2">
                         <button class="btn btn-outline-info btn-sm w-100" onclick="sendQuickMessage('Show me the weather forecast')">
-                            Weather Forecast
+                            <i class="fas fa-cloud-sun"></i> Weather Forecast
                         </button>
                     </div>
                     <div class="col-md-3 mb-2">
-                        <button class="btn btn-outline-success btn-sm w-100" onclick="sendQuickMessage('How is my vegetation health?')">
-                            Vegetation Health
+                        <button class="btn btn-outline-success btn-sm w-100" onclick="sendQuickMessage('How is my crop health?')">
+                            <i class="fas fa-leaf"></i> Crop Health
                         </button>
                     </div>
                     <div class="col-md-3 mb-2">
                         <button class="btn btn-outline-warning btn-sm w-100" onclick="sendQuickMessage('Give me irrigation recommendations')">
-                            Irrigation Advice
+                            <i class="fas fa-shower"></i> Irrigation Tips
                         </button>
                     </div>
                 </div>
@@ -82,35 +143,6 @@
         </div>
     </div>
 </div>
-
-<style>
-.message-bubble {
-    max-width: 70%;
-    padding: 10px 15px;
-    border-radius: 15px;
-    margin-bottom: 10px;
-    word-wrap: break-word;
-}
-
-.user-message {
-    background-color: #007bff;
-    color: white;
-    border-bottom-right-radius: 5px;
-}
-
-.ai-message {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-bottom-left-radius: 5px;
-}
-
-#chatMessages {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 10px;
-    padding: 15px;
-}
-</style>
 
 <script>
 document.getElementById('chatForm').addEventListener('submit', function(e) {
@@ -147,14 +179,14 @@ function sendMessage() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            addMessageToChat('AI Assistant', data.response, false);
+            addMessageToChat('Farm AI', data.response, false);
         } else {
-            addMessageToChat('AI Assistant', 'Sorry, I encountered an error processing your request.', false);
+            addMessageToChat('Farm AI', 'Sorry, I encountered an error processing your request.', false);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        addMessageToChat('AI Assistant', 'Sorry, I encountered an error processing your request.', false);
+        addMessageToChat('Farm AI', 'Sorry, I encountered an error processing your request.', false);
     })
     .finally(() => {
         // Re-enable input and button
@@ -167,6 +199,12 @@ function sendMessage() {
 
 function addMessageToChat(sender, message, isUser) {
     const chatMessages = document.getElementById('chatMessages');
+    
+    // If this is the first message, clear the welcome message
+    if (chatMessages.querySelector('.text-center')) {
+        chatMessages.innerHTML = '';
+    }
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = 'mb-3';
     
@@ -183,10 +221,18 @@ function addMessageToChat(sender, message, isUser) {
             </div>
         `;
     } else {
+        // Process the AI response to properly format markdown
+        let formattedResponse = message
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold text
+            .replace(/\n\n/g, '</p><p>')  // Paragraph breaks
+            .replace(/\n\*/g, '<br>•')    // List items
+            .replace(/\n\d\./g, '<br>1.') // Numbered lists
+            .replace(/\n/g, '<br>');      // Line breaks
+        
         messageDiv.innerHTML = `
             <div class="d-flex">
                 <div class="message-bubble ai-message me-auto">
-                    <strong>${sender}:</strong> ${message.replace(/\n/g, '<br>')}
+                    <strong>${sender}:</strong> ${formattedResponse}
                 </div>
             </div>
         `;
@@ -201,7 +247,135 @@ function sendQuickMessage(message) {
     sendMessage();
 }
 
+function createNewChat() {
+    fetch('{{ url_for("rag.api_new_chat_session") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload the page to show the new chat session
+            location.reload();
+        } else {
+            alert('Error creating new chat session');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating new chat session');
+    });
+}
+
+function loadChatSession(sessionId, element) {
+    console.log('Loading chat session:', sessionId);
+    
+    // Update the active session in the sidebar
+    const sessionItems = document.querySelectorAll('.list-group-item');
+    sessionItems.forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to the clicked session
+    element.classList.add('active');
+    
+    // Load the chat history for this session
+    loadChatSessionHistory(sessionId);
+}
+
+function deleteChatHistory() {
+    if (confirm('Are you sure you want to delete all chat history?')) {
+        fetch('{{ url_for("rag.api_delete_chat_history") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the page to show empty chat
+                location.reload();
+            } else {
+                alert('Error deleting chat history: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting chat history');
+        });
+    }
+}
+
 // Auto-focus on message input
 document.getElementById('messageInput').focus();
+
+// Load specific session if requested
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    if (sessionId) {
+        loadChatSessionHistory(sessionId);
+    }
+});
+
+function loadChatSessionHistory(sessionId) {
+    console.log('Fetching chat history for session:', sessionId);
+    
+    fetch(`/api/chat/history/${sessionId}`)
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Received chat history data:', data);
+        
+        if (data.success) {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+            
+            if (data.chat_history.length > 0) {
+                data.chat_history.forEach(chat => {
+                    // Add user message
+                    addMessageToChat('You', chat.message, true);
+                    // Add AI response
+                    addMessageToChat('Farm AI', chat.response, false);
+                });
+            } else {
+                // Show welcome message
+                chatMessages.innerHTML = `
+                    <div class="text-center text-muted mt-5">
+                        <i class="fas fa-robot fa-3x mb-3"></i>
+                        <p>Start a conversation with your AI farming assistant<br>
+                        <small>Ask about your soil, weather, crops, or farm management</small></p>
+                    </div>
+                `;
+            }
+        } else {
+            console.error('Error in response:', data.error);
+            // Show error message to user
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="text-center text-danger mt-5">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <p>Error loading chat history: ${data.error || 'Unknown error'}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error loading chat history:', error);
+        // Show error message to user
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = `
+            <div class="text-center text-danger mt-5">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                <p>Error loading chat history. Please try again.</p>
+            </div>
+        `;
+    });
+}
 </script>
 {% endblock %}

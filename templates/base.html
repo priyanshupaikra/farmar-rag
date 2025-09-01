@@ -9,15 +9,15 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('rag.dashboard') }}">
-                <i class="fas fa-seedling"></i> Farmer AI Assistant
+                <i class="fas fa-tractor"></i> Farmer AI Assistant
             </a>
             {% if session.user_id %}
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="{{ url_for('rag.dashboard') }}">
-                    <i class="fas fa-dashboard"></i> Dashboard
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
                 <a class="nav-link" href="{{ url_for('rag.chat') }}">
                     <i class="fas fa-comments"></i> Chat
@@ -51,6 +51,15 @@
 
         {% block content %}{% endblock %}
     </main>
+
+    <footer class="bg-light text-center text-muted py-3 mt-4">
+        <div class="container">
+            <small>
+                <i class="fas fa-leaf"></i> Farmer AI Assistant &copy; 2025 | 
+                Cultivating Smarter Agriculture with AI
+            </small>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

@@ -27,6 +27,8 @@ def login():
             session['user_id'] = str(user['_id'])
             session['user_name'] = user['name']
             session['user_email'] = user['email']
+            # Initialize chat session
+            session['chat_session_id'] = db.create_new_chat_session(str(user['_id']))
             flash('Login successful!', 'success')
             return redirect(url_for('rag.dashboard'))
         else:
@@ -55,6 +57,8 @@ def register():
             session['user_id'] = str(user_id)
             session['user_name'] = name
             session['user_email'] = email
+            # Initialize chat session
+            session['chat_session_id'] = db.create_new_chat_session(str(user_id))
             flash('Registration successful!', 'success')
             return redirect(url_for('rag.dashboard'))
         except Exception as e:
@@ -64,6 +68,8 @@ def register():
 
 @auth_bp.route('/logout')
 def logout():
+    # Chat history is automatically saved during conversations
+    # Just clear the session
     session.clear()
     flash('You have been logged out', 'info')
     return redirect(url_for('auth.login'))
